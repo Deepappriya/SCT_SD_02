@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Number Guessing Game</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #222;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    flex-direction: column;
+    transition: background-color 0.5s ease;
+  }
+  h1 {
+    margin-bottom: 10px;
+  }
+  input[type="number"] {
+    padding: 10px;
+    font-size: 18px;
+    width: 100px;
+    border-radius: 6px;
+    border: none;
+    margin-right: 10px;
+    text-align: center;
+  }
+  button {
+    padding: 10px 15px;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    background-color: #28a745;
+    color: white;
+    transition: background-color 0.3s;
+    margin-right: 10px;
+  }
+  button:hover {
+    background-color: #218838;
+  }
+  #message {
+    margin-top: 15px;
+    font-size: 20px;
+    min-height: 24px;
+  }
+  #scoreboard {
+    margin-top: 10px;
+    font-size: 16px;
+    color: #ccc;
+  }
+  /* Success popup styling */
+  #popup {
+    display: none;
+    position: fixed;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.5);
+    background: #28a745;
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-size: 22px;
+    box-shadow: 0 0 15px rgba(0, 128, 0, 0.7);
+    z-index: 1000;
+    text-align: center;
+    animation: popupScale 0.4s forwards;
+  }
+
+  @keyframes popupScale {
+    to {
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+</style>
+</head>
+<body>
+  <h1>Guess the Number (1 to 10)</h1>
+  <div>
+    <input type="number" id="guessInput" min="1" max="10" placeholder="Your guess" />
+    <button onclick="checkGuess()">Guess</button>
+    <button onclick="resetGame()">Reset</button>
+  </div>
+  <div id="message"></div>
+  <div id="scoreboard"></div>
+
+  <!-- Success Popup -->
+  <div id="popup">🎉 Congratulations! You guessed the number!</div>
+
+  <!-- Sound effects -->
+  <audio id="sound-correct" preload="auto" src="https://cdn.pixabay.com/download/audio/2021/09/27/audio_4f5d19f3a7.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="sound-wrong" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/27/audio_360e43b24f.mp3?filename=wrong-buzzer-6268.mp3"></audio>
+
+<script>
+  let secretNumber;
+  let attempts;
+  let bestScore = null;
+
+  function initGame() {
+    secretNumber = Math.floor(Math.random() * 10) + 1;
+    attempts = 0;
+    document.getElementById('guessInput').disabled = false;
+    document.getElementById('guessInput').value = '';
+    document.getElementById('message').textContent = '';
+    document.getElementById('scoreboard').textContent = bestScore === null ? '' : `Best Score: ${bestScore} attempt${bestScore > 1 ? 's' : ''}`;
+    document.getElementById('guessInput').focus();
+    document.body.style.backgroundColor = '#222';  // Reset background color on new game
+  }
+
+  function showPopup() {
+    const popup = document.getElementById('popup');
+    popup.style.display = 'block';
+    popup.style.animation = 'none'; // reset animation
+    popup.offsetHeight; // trigger reflow
+    popup.style.animation = null; // restart animation
+    setTimeout(() => {
+      popup.style.display = 'none';
+    }, 3000);
+  }
+
+  function playSound(id) {
+    const sound = document.getElementById(id);
+    if (sound) {
+      sound.currentTime = 0;
+      sound.play();
+    }
+  }
+
+  function checkGuess() {
+    const input = document.getElementById('guessInput');
+    const message = document.getElementById('message');
+    let guess = Number(input.value);
+
+    if (!guess || guess < 1 || guess > 10) {
+      message.textContent = 'Please enter a number between 1 and 10.';
+      return;
+    }
+
+    attempts++;
+
+    if (guess === secretNumber) {
+      message.textContent = `🎉 Correct! You guessed the number in ${attempts} attempt${attempts > 1 ? 's' : ''}.`;
+      input.disabled = true;
+
+      // Update best score
+      if (bestScore === null || attempts < bestScore) {
+        bestScore = attempts;
+      }
+      document.getElementById('scoreboard').textContent = `Best Score: ${bestScore} attempt${bestScore > 1 ? 's' : ''}`;
+
+      // Show popup and play success sound
+      showPopup();
+      playSound('sound-correct');
+
+      // Change background color to green
+      document.body.style.backgroundColor = '#28a745';
+    } else {
+      message.textContent = guess < secretNumber ? 'Too low! Try again.' : 'Too high! Try again.';
+      playSound('sound-wrong');
+    }
+
+    input.value = '';
+    input.focus();
+  }
+
+  function resetGame() {
+    initGame();
+  }
+
+  // Initialize game on page load
+  window.onload = initGame;
+</script>
+</body>
+</html>
